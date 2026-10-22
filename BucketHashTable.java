@@ -1,3 +1,13 @@
+/* 
+ * @author: Collin Bale
+ * class: Java233 Advanced Data Structures
+ * Assignment: MA3 HashTables
+ * 
+ * I used AI to help me understand where to place comments for the JavaDoc comments. 
+ * Also asked clairfying logic implimentation questions "is this correct" questions.
+ * 
+ */
+
 import java.util.ArrayList;
 
 //BucketHashTable will implement the hashtable with separate chaining.
@@ -7,6 +17,10 @@ public class BucketHashTable<K, V> extends HashTableBase<K, V> {
     //we use another ArrayList to represent the "chain" in each bucket, which represents the first level slot of the table.
 	private ArrayList<ArrayList<HashItem<K, V>>> _buckets;
 
+	/*
+	 * Calculates the bucket index for a given key
+	 * 
+	 */
 	protected int getHash(K item)
 	{
 		return _hasher.getHash(item, _buckets.size());
@@ -93,18 +107,63 @@ public class BucketHashTable<K, V> extends HashTableBase<K, V> {
 		_number_of_elements = other._number_of_elements;
 	}
 
-    //TODO: concrete implementation for parent's addElement method
+	/*
+	 * Adds a new Key value pair or updates an existing one
+	 * 
+	 */
 	public void addElement(K key, V value)
 	{
-		// To Be Implemented
+	    int index = getHash(key); // Check what index the key gets hashed into
+
+	    // Get the bucket (ArrayList) at the calculated index
+	    ArrayList<HashItem<K, V>> bucket = _buckets.get(index);
+
+	    // First check if there is already an item with the same key
+	    for (HashItem<K, V> item : bucket) {
+	        if (item.isEmpty() == false && item.getKey().equals(key)) {
+	            item.setValue(value);
+	            return;
+	        }
+	    }
+
+	    // Then see if there are any empty items we can use
+	    for (HashItem<K, V> item : bucket) {
+	        if (item.isEmpty()) {
+	            item.setKey(key);
+	            item.setValue(value);
+	            item.setIsEmpty(false);
+
+	            _number_of_elements++;
+	            resizeCheck();
+	            return;
+	        }
+	    }
+
+	    // Otherwise, add a new item to the bucket
+	    bucket.add(new HashItem<K, V>(key, value, false));
+
+	    _number_of_elements++;
+	    resizeCheck();
 	}
 
-	//TODO: performs lazy delete using the supplied key
+	// performs lazy delete using the supplied key
 	public void removeElement(K key)
 	{
-		// To Be Implemented
+		int index = getHash(key); // Check what index the key gets hashed into
 
-		// Note: use setIsEmpty() to perform lazy delete
+	    // Get the bucket (ArrayList) at the calculated index
+	    ArrayList<HashItem<K, V>> bucket = _buckets.get(index);
+
+	    // for each item if the key matches then remove it.
+	    for (HashItem<K, V> item : bucket) {
+	        if (item.isEmpty() == false && item.getKey().equals(key)) {
+	            item.setIsEmpty(true);
+	            _number_of_elements--;
+	            return;
+	        }
+
+	        // since it's void we don't need to return anything if we don't remove an element we just continue.
+	    }
 	}
 
 	// returns true if the key is contained in the hash table
@@ -123,9 +182,6 @@ public class BucketHashTable<K, V> extends HashTableBase<K, V> {
 
 	    return false;
 	}
-		
-return false;
-	}
 
 	//returns the value paired with the key
 	public V getElement(K key) {
@@ -134,12 +190,14 @@ return false;
 	    // Get the bucket (ArrayList) at the calculated index
 	    ArrayList<HashItem<K, V>> bucket = _buckets.get(index);
 
+	    // for each item check if the key matches then return it. 
 	    for(HashItem<K, V> item : bucket) {
-	    	if(item.isEmpty() == false && item.getKey(.equals(key))) {
-	    		return item.getItem(); // return the value paired with the key.
+	    	if(item.isEmpty() == false && item.getKey().equals(key)) {
+	    		return item.getValue(); // return the value paired with the key.
 	    	}
+	    }
 
-	   return null;
+	    return null;
 	}
 
 	public ArrayList<ArrayList<HashItem<K, V>>> getBuckets() {
